@@ -7,18 +7,12 @@ public class SahneDegistirme : MonoBehaviour
 {
     public int _OncekiSahne;
     public int _SahneSayi;
-    public static int _YDASayi;
     public static bool Geri;
 
     private OyuncuKontrol Oyuncu;
-    private OyuncuAnimasyonKontrol OyuncuAnimasyon;
 
-    public GameObject Karakter;
-    public GameObject KameraSinir;
-    public GameObject Kamera1;
-    public GameObject Kamera2;
+    public SpriteRenderer Karakter;
     public GameObject Ui;
-    public GameObject PanelKontrol;
 
 
     string[] _Sahneler = { "Zirve", "Orman", "Koy_1", "Koy_2", "Koy_3", "Koy_4", "DenizKiyisi", "Magara", "Magara_2", "Zindan", "Zindan_1", "Boss"};
@@ -26,19 +20,22 @@ public class SahneDegistirme : MonoBehaviour
     {
         #region Baðlantý
         Oyuncu = FindObjectOfType<OyuncuKontrol>();
-        OyuncuAnimasyon = FindObjectOfType<OyuncuAnimasyonKontrol>();
+        Karakter = GameObject.Find("Karakter").GetComponentInChildren<SpriteRenderer>();
+        Ui = GameObject.Find("Ui");
         #endregion
 
-        #region YDA Kontrol Et Eðer Yoksa Oluþtur
-        PlayerPrefs.HasKey("_YDA");
-        if(PlayerPrefs.HasKey("_YDA"))
+        #region CPPoint Kontrol
+        PlayerPrefs.HasKey("CPPoint");
+
+        if (PlayerPrefs.HasKey("CPPoint"))
         {
-            _YDASayi = PlayerPrefs.GetInt("_YDA");
+            CheckPoint.CPPoint = PlayerPrefs.GetInt("CPPoint");
         }
         else
         {
-            PlayerPrefs.SetInt("_YDA",0);
+            PlayerPrefs.SetInt("CPPoint", 0);
         }
+
         #endregion
 
         #region Sahne Sayisini Kontrol Et Eðer Yoksa Oluþtur
@@ -72,6 +69,15 @@ public class SahneDegistirme : MonoBehaviour
     public void TekrarOyna() //öldüðünde haritayý tekrar baþlat
     {
         Time.timeScale = 1;
+        if(CheckPoint.CPPoint == 0)
+        {
+            CheckPoint0();
+        }
+        else if (CheckPoint.CPPoint == 1)
+        {
+            CheckPoint1();
+        }
+        
         Oyuncu.YenidenDog();
     }
     #endregion
@@ -79,22 +85,27 @@ public class SahneDegistirme : MonoBehaviour
     #region OyunaBasla (Menüde Buton Kontrol)
     public void OyunaBasla()  //menüden oyna butonuna basýldýðýnda oyunu baþlat
     {
+        if (CheckPoint.CPPoint == 0)
+        {
+            CheckPoint0();
+        }
+        else if (CheckPoint.CPPoint == 1) 
+        {
+            CheckPoint1();
+        }
         Time.timeScale = 1;
-        CheckPointKontrol();
         Oyuncu.YenidenDog();
+        
     }
     #endregion
 
     #region AnaMenüyeDön (Ölüm Panelinde Buton Kontrol)
     public void AnaMenuyeDon()  //Anamenüye dön 
     {
-        Destroy(Karakter);
-        Destroy(KameraSinir);
-        Destroy(Kamera1);
-        Destroy(Kamera2);
-        Destroy(Ui);
-        Destroy(PanelKontrol);
-        SceneManager.LoadScene("Menu");
+        Oyuncu.OyuncuSprite.gameObject.SetActive(false);
+        Oyuncu.Kamera.SetActive(false);
+        Oyuncu.Ui.SetActive(false);
+        SceneManager.LoadScene(0);
     }
     #endregion
 
@@ -103,11 +114,6 @@ public class SahneDegistirme : MonoBehaviour
     {
         Geri = false;
         _SahneSayi++;
-        Debug.Log(_SahneSayi);
-        if(_SahneSayi == 3 && _YDASayi < 1)
-        {
-            PlayerPrefs.SetInt("_YDA", 1);
-        }
         OncekiSahneyiKaydet();
         PlayerPrefs.SetInt("_SahneSayi", _SahneSayi);
         SceneManager.LoadScene(_Sahneler[_SahneSayi]);
@@ -137,29 +143,37 @@ public class SahneDegistirme : MonoBehaviour
     #region Oyun Kapatýldýðýnda Sahne Sayýsýný Sýfýrla
     void OnApplicationQuit()
     {
-        PlayerPrefs.SetInt("_SahneSayi", 0);
-        PlayerPrefs.SetInt("_OncekiSahne", 0);
-        PlayerPrefs.SetInt("_YDA",_YDASayi);
-    }
-    #endregion
-
-    #region Check Point Kontrol
-    public void CheckPointKontrol()
-    {
-        if (_YDASayi > 0)
+        PlayerPrefs.SetInt("CPPoint", CheckPoint.CPPoint);
+        if (CheckPoint.CPPoint < 1)
         {
-            SceneManager.LoadScene(4);
-            PlayerPrefs.SetInt("_SahneSayi", 3);
-            PlayerPrefs.SetInt("_OncekiSahne", 2);
+            PlayerPrefs.SetInt("_SahneSayi", 1);
+            PlayerPrefs.SetInt("_OncekiSahne", 0);
         }
         else
         {
-            SceneManager.LoadScene(1);
-            PlayerPrefs.SetInt("_SahneSayi", 0);
-            PlayerPrefs.SetInt("_OncekiSahne", 0);
+            PlayerPrefs.SetInt("_SahneSayi", 4);
+            PlayerPrefs.SetInt("_OncekiSahne", 3);
         }
     }
     #endregion
+
+    #region CheckPoint
+
+    public void CheckPoint0()
+    {
+        PlayerPrefs.SetInt("_SahneSayi", 0);
+        PlayerPrefs.SetInt("_OncekiSahne", 0);
+        SceneManager.LoadScene(1);
+    }
+    
+    public void CheckPoint1()
+    {
+        PlayerPrefs.SetInt("_SahneSayi", 3);
+        PlayerPrefs.SetInt("_OncekiSahne", 2);
+        SceneManager.LoadScene(4);
+    }
+    #endregion
+
 
     #region Trigger Kontrol
     private void OnTriggerEnter2D(Collider2D _Karakter) // belirlenen objelere dokunduðumda kodu çalýþtýr

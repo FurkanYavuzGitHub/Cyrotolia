@@ -1,47 +1,36 @@
-using UnityEngine.Audio;
-using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SesKontrol : MonoBehaviour
 {
-    public Ses[] Sesler; //Ses class'ý ile baðlantý kurduk
-    void Awake()
+
+    public AudioSource S_idle;
+    public AudioSource S_battle;
+
+    // Update is called once per frame
+    void Update()
     {
-        foreach (Ses N in Sesler) //Seskontrol objesine tüm seçenekleri ekliyoruz.
+        if(!DusmanKontrol.Ses)
         {
-            N.Asource = gameObject.AddComponent<AudioSource>();
-            N.Asource.clip = N.Aclip;
-            N.Asource.volume = N.sesduzeyi;
-            N.Asource.pitch = N.pitch;
-            N.Asource.loop = N.Loop;
-            N.Asource.playOnAwake = N.Playonawake;
+            if (S_idle.isPlaying)
+            {
+                if (S_battle.isPlaying)
+                {
+                    S_battle.Stop();
+                }
+                return;
+            }
+            
+            S_idle.Play();
         }
-    }
-
-    void Start() //Baþlangýçta sesi oynat
-    {
-        Oynat("idle");
-    }
-
-    public void Oynat(string isim) //Seçenekteki sesi oynat
-    {
-        Ses N = Array.Find(Sesler, ses => ses.isim == isim);
-        N.Asource.Play();
-
-    }
-    
-    public void Durdur(string isim) //Seçenekteki sesi kapat
-    {
-        Ses N = Array.Find(Sesler, ses => ses.isim == isim);
-        N.Asource.Stop();
-    }
-    
-    public void idle()
-    {
-        //Savaþ dýþý oynatýlacak müzik
-    }
-    public void Savas()
-    {
-        //Savaþýrken oynatýlacak müzik
+        else if(DusmanKontrol.Ses && !OyuncuKontrol.Oyundurdu)
+        {
+            if(S_battle.isPlaying)
+            {
+                return;
+            }
+            S_battle.Play();
+        }
     }
 }

@@ -35,6 +35,9 @@ public abstract class DusmanKontrol : MonoBehaviour,IHasarKontrol
     //Karakter Bilgileri
     protected OyuncuKontrol Oyuncu;
     protected Transform Hedef;
+    internal static bool Ses;
+
+    //Ses
 
     private void Start()
     {
@@ -79,7 +82,7 @@ public abstract class DusmanKontrol : MonoBehaviour,IHasarKontrol
     {
         if (Vector2.Distance(transform.position, Hedef.transform.position) > Uzaklik) //Hedefe Doðru hareket et
         {
-     
+            
             DusmanAnimasyon.Hareket();
             transform.position = Vector3.MoveTowards(transform.position, new Vector3(Hedef.position.x, transform.position.y, transform.position.z),DusmanHiz*Time.deltaTime);
         }
@@ -97,9 +100,11 @@ public abstract class DusmanKontrol : MonoBehaviour,IHasarKontrol
         if (Vector2.Distance(transform.position, Hedef.transform.position) < GorusAlani && Oyuncu.Can > 1)
         {
             Durum = Enum.HedefiGordu;
+            Ses = true;
         }
         else
         {
+            Ses = false;
             Durum = Enum.HedefiGormedi;
         }
     }
@@ -180,7 +185,6 @@ public abstract class DusmanKontrol : MonoBehaviour,IHasarKontrol
     #region DüþmanYz
     public virtual void DusmanYz()
     {
-
         if (Durum == Enum.Oldu)
         {
             Destroy(this.gameObject, 3);

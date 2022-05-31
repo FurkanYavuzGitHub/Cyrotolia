@@ -37,6 +37,8 @@ public class OyuncuKontrol : MonoBehaviour, IHasarKontrol
     private OyuncuAnimasyonKontrol OyuncuAnimasyon;
     public SpriteRenderer OyuncuSprite;
     private SaldiriKontrol Kilic;
+    public GameObject Ui;
+    public GameObject Kamera;
 
     //Oyun içi Baðlantý
     public GameObject FenerLight;
@@ -50,13 +52,14 @@ public class OyuncuKontrol : MonoBehaviour, IHasarKontrol
     int Maxcan = 100;
     int Maxbuyu = 100;
 
-    //Dusman
-
     //SahneKontrol
     private SahneDegistirme SahneKontrol;
 
     //Kontrol
     public static bool B_SavunmaKontrol;
+
+    //Ses
+    public static bool Oyundurdu;
     public int Can { get; set; }
 
 
@@ -65,16 +68,20 @@ public class OyuncuKontrol : MonoBehaviour, IHasarKontrol
     {
 
         #region Baðlantý Kur
+
         Rigid = GetComponent<Rigidbody2D>();
         Kilic = GetComponentInChildren<SaldiriKontrol>();
         OyuncuAnimasyon = GetComponent<OyuncuAnimasyonKontrol>();
         OyuncuSprite = GetComponentInChildren<SpriteRenderer>();
         SahneKontrol = FindObjectOfType<SahneDegistirme>();
-
+        Ui = GameObject.Find("Ui");
+        Kamera = GameObject.Find("Kamera");
         #endregion
 
         #region Baslangýç Ayarlarý
-
+        Ui.gameObject.SetActive(false);
+        Kamera.gameObject.SetActive(false);
+        OyuncuSprite.GetComponentInParent<Rigidbody2D>().gravityScale = 0;
         Can = OyuncuCan;
         OyuncuCan = Maxcan;
         OyuncuBuyu = Maxbuyu;
@@ -276,6 +283,7 @@ public class OyuncuKontrol : MonoBehaviour, IHasarKontrol
         {
             OyuncuAnimasyon.Ol();
             P_OyunSonu.SetActive(true);
+            
             return;
         }
         else
@@ -288,17 +296,23 @@ public class OyuncuKontrol : MonoBehaviour, IHasarKontrol
     #region Yeniden Doð
     public void YenidenDog()
     {
+        Kamera.gameObject.SetActive(true);
+        OyuncuSprite.gameObject.SetActive(true);
+        Ui.gameObject.SetActive(true);
+        OyuncuSprite.GetComponentInParent<Rigidbody2D>().gravityScale = 1;
         P_OyunSonu.SetActive(false);
         Can = 100;
-        if(SahneDegistirme._YDASayi > 0)
-        {
-            transform.position = new Vector2(-3.619f, 0.9f);
-        }
-        else
-        {
-            transform.position = new Vector2(0.5f, 1f);
-        }
         OyuncuAnimasyon.YenidenDog();
+
+        if (CheckPoint.CPPoint == 0)
+        {
+            transform.position = new Vector2(0.5f, 1.09f);
+        }
+        else if(CheckPoint.CPPoint == 1)
+        {
+            transform.position = new Vector2(-3.5f, 1f);
+        }
+       
     }
     #endregion
 
@@ -477,6 +491,7 @@ public class OyuncuKontrol : MonoBehaviour, IHasarKontrol
 
     public void J_Saldir()
     {
+        B_SavunmaKontrol = false;
         if (Kilic.Saldirabiliyormu)
         {
             OyuncuAnimasyon.Saldir();
@@ -485,6 +500,7 @@ public class OyuncuKontrol : MonoBehaviour, IHasarKontrol
 
     public void J_Zipla()
     {
+        B_SavunmaKontrol = false;
         ZiplamaKontrol();
     }
 
@@ -492,6 +508,7 @@ public class OyuncuKontrol : MonoBehaviour, IHasarKontrol
     {
         if(Input.GetKeyDown(KeyCode.Mouse0))
         {
+            B_SavunmaKontrol = false;
             if (!FenerLight.activeSelf)
             {
                 FenerLight.SetActive(true);
@@ -519,14 +536,17 @@ public class OyuncuKontrol : MonoBehaviour, IHasarKontrol
 
     public void J_Durdur()
     {
-        if(P_OyunSonu.activeSelf)
+        B_SavunmaKontrol = false;
+        if (P_OyunSonu.activeSelf)
         {
+            Oyundurdu = false;
             Time.timeScale = 1;
             P_OyunSonu.SetActive(false);
             return;
         }
         else
         {
+            Oyundurdu = true;
             Time.timeScale = 0;
             P_OyunSonu.SetActive(true);
         }
